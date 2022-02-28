@@ -2,9 +2,7 @@ package com.swedbank.playground;
 
 import java.util.List;
 
-public interface IPlaysite {
-
-  PlaysiteType getPlaysiteType();
+public interface IPlaySite {
 
   boolean addKid(Kid kid);
 

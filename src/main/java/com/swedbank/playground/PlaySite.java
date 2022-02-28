@@ -1,21 +1,23 @@
 package com.swedbank.playground;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
-public class Playsite implements IPlaysite {
+@Getter
+@Setter
+public class PlaySite implements IPlaySite {
 
-  private PlaysiteType playsiteType;
+  final List<Kid> kidsPlaying = new LinkedList<>();
+  final List<Kid> kidsWaiting = new LinkedList<>();
+  final IVisitRepository visitRepository;
 
-  private List<Kid> kidsPlaying = new LinkedList<>();
-  private List<Kid> kidsWaiting = new LinkedList<>();
-  private int maxKidsPlaying;
-  private IVisitRepository visitRepository;
+  int maxKidsPlaying;
 
-  public Playsite(IVisitRepository visitRepository) {
+  public PlaySite(IVisitRepository visitRepository) {
     this.visitRepository = visitRepository;
   }
 
@@ -24,11 +26,10 @@ public class Playsite implements IPlaysite {
     if (kidsPlaying.size() >= maxKidsPlaying) {
       kidsWaiting.add(kid);
       return false;
-    }
-    else {
+    } else {
       kidsPlaying.add(kid);
       Visit visit = new Visit();
-      visit.setPlaysite(this);
+      visit.setPlaySite(this);
       visit.setKid(kid);
       visit.setStart(true);
       visit.setTime(new Date());
@@ -44,58 +45,40 @@ public class Playsite implements IPlaysite {
     }
 
     if (kidsPlaying.remove(kid)) {
-      Visit visit = new Visit();
-      visit.setPlaysite(this);
+      var visit = new Visit();
+      visit.setPlaySite(this);
       visit.setKid(kid);
       visit.setStart(false);
       visit.setTime(new Date());
       visitRepository.save(visit);
 
       if (kidsWaiting.size() > 0) {
-        Kid kid2 = kidsWaiting.remove(0);
+        var kid2 = kidsWaiting.remove(0);
         visit = new Visit();
-        visit.setPlaysite(this);
+        visit.setPlaySite(this);
         visit.setKid(kid2);
         visit.setStart(true);
         visit.setTime(new Date());
         visitRepository.save(visit);
         kidsPlaying.add(kid2);
       }
-    }
-    else {
-      throw new RuntimeException("No kid " + kid + " in playsite: " + this);
+    } else {
+      throw new RuntimeException("No kid " + kid + " in playSite: " + this);
     }
   }
 
   @Override
   public List<Kid> kidsPlaying() {
     ImmutableList.Builder<Kid> builder = ImmutableList.builder();
-    for (int i = 0; i < kidsPlaying.size(); i++) {
-      builder.add(kidsPlaying.get(i));
-    }
+    kidsPlaying.forEach(builder::add);
     return builder.build();
   }
 
   @Override
   public List<Kid> kidsWaiting() {
     ImmutableList.Builder<Kid> builder = ImmutableList.builder();
-    for (int i = 0; i < kidsWaiting.size(); i++) {
-      builder.add(kidsWaiting.get(i));
-    }
+    kidsWaiting.forEach(builder::add);
     return builder.build();
-  }
-
-  @Override
-  public PlaysiteType getPlaysiteType() {
-    return playsiteType;
-  }
-
-  public void setPlaysiteType(PlaysiteType playsiteType) {
-    this.playsiteType = playsiteType;
-  }
-
-  public int getMaxKidsPlaying() {
-    return maxKidsPlaying;
   }
 
   public void setMaxKidsPlaying(int maxKidsPlaying) {
